@@ -1,0 +1,1017 @@
+<title>Blus AI Enterprise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: satu kolom kerja dua bagian (editor + hasil di kiri, indeks risiko + metrik di kanan), tab untuk pengaturan kamus. */
+  :root {
+    --bg: #0a192f;
+    --surface: #112240;
+    --raised: #1a2d52;
+    --line: #233554;
+    --fg: #e6f1ff;
+    --muted: #8f9bb8;
+    --accent: #60a5fa;
+    --accent-ink: #06142b;
+    --bad: #f43f5e;
+    --bad-bg: rgba(244, 63, 94, 0.28);
+    --bad-fg: #fda4af;
+    --neg: #f59e0b;
+    --neg-bg: rgba(245, 158, 11, 0.26);
+    --neg-fg: #fde68a;
+    --pos: #10b981;
+    --pos-bg: rgba(16, 185, 129, 0.26);
+    --pos-fg: #6ee7b7;
+    --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f1f4fa;
+      --surface: #ffffff;
+      --raised: #e8eef8;
+      --line: #d2dae8;
+      --fg: #0e1b33;
+      --muted: #55627f;
+      --accent: #1f5fd0;
+      --accent-ink: #ffffff;
+      --bad: #d3173d;
+      --bad-bg: rgba(211, 23, 61, 0.14);
+      --bad-fg: #a30f2d;
+      --neg: #b86e00;
+      --neg-bg: rgba(217, 119, 6, 0.17);
+      --neg-fg: #7a4700;
+      --pos: #0b8a5f;
+      --pos-bg: rgba(16, 185, 129, 0.18);
+      --pos-fg: #065f46;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f1f4fa;
+    --surface: #ffffff;
+    --raised: #e8eef8;
+    --line: #d2dae8;
+    --fg: #0e1b33;
+    --muted: #55627f;
+    --accent: #1f5fd0;
+    --accent-ink: #ffffff;
+    --bad: #d3173d;
+    --bad-bg: rgba(211, 23, 61, 0.14);
+    --bad-fg: #a30f2d;
+    --neg: #b86e00;
+    --neg-bg: rgba(217, 119, 6, 0.17);
+    --neg-fg: #7a4700;
+    --pos: #0b8a5f;
+    --pos-bg: rgba(16, 185, 129, 0.18);
+    --pos-fg: #065f46;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 56px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+
+  header.top {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 12px; padding-bottom: 16px;
+  }
+  .brand { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; }
+  .brand h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em; color: var(--accent); }
+  .badge {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    border: 1px solid var(--accent); color: var(--accent); border-radius: 5px; padding: 3px 8px;
+  }
+  .privacy { font-size: 0.8rem; color: var(--muted); margin: 0; }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+  .tab {
+    appearance: none; background: none; border: 0; border-bottom: 2px solid transparent;
+    color: var(--muted); font: inherit; font-weight: 500; padding: 10px 14px; cursor: pointer; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--fg); }
+  .tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+  label.cap, .cap {
+    display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  textarea, input[type="text"] {
+    width: 100%; background: var(--surface); color: var(--fg); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 14px; font: inherit; line-height: 1.6;
+  }
+  textarea { min-height: 150px; resize: vertical; }
+  textarea::placeholder, input::placeholder { color: var(--muted); opacity: 0.8; }
+  .hint { font-size: 0.8rem; color: var(--muted); margin: 6px 0 0; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn {
+    appearance: none; font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 18px;
+    cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--fg);
+  }
+  .btn:hover { background: var(--raised); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { filter: brightness(1.08); background: var(--accent); }
+  .btn.danger { color: var(--bad-fg); border-color: var(--bad); }
+  .btn.grow { flex: 1 1 160px; }
+
+  .out {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px;
+    min-height: 84px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9;
+  }
+  .out.quiet { color: var(--muted); }
+  .out .empty { color: var(--muted); }
+  .hl-bad, .hl-neg, .hl-pos { border-radius: 3px; padding: 0 4px; border-bottom: 2px solid; }
+  .hl-bad { background: var(--bad-bg); color: var(--bad-fg); border-color: var(--bad); }
+  .hl-neg { background: var(--neg-bg); color: var(--neg-fg); border-color: var(--neg); }
+  .hl-pos { background: var(--pos-bg); color: var(--pos-fg); border-color: var(--pos); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .gauge-val { font-family: var(--font-mono); font-size: 2.4rem; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+  .gauge-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .bar { position: relative; height: 16px; border-radius: 999px; background: var(--raised); border: 1px solid var(--line); overflow: visible; }
+  .bar-fill { height: 100%; border-radius: 999px; width: 0; background: var(--pos); transition: width 0.35s ease; }
+  .bar-mark { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--fg); opacity: 0.7; }
+  .bar-scale { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); margin-top: 8px; }
+  .pill {
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px; border: 1px solid;
+  }
+  .pill.ok { color: var(--pos-fg); background: var(--pos-bg); border-color: var(--pos); }
+  .pill.watch { color: var(--neg-fg); background: var(--neg-bg); border-color: var(--neg); }
+  .pill.block { color: var(--bad-fg); background: var(--bad-bg); border-color: var(--bad); }
+
+  dl.metrics { margin: 0; display: grid; gap: 0; }
+  dl.metrics div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  dl.metrics div:last-child { border-bottom: 0; }
+  dl.metrics dt { color: var(--muted); font-size: 0.88rem; }
+  dl.metrics dd { margin: 0; font-family: var(--font-mono); font-size: 1rem; font-variant-numeric: tabular-nums; }
+  dd.v-bad { color: var(--bad-fg); } dd.v-neg { color: var(--neg-fg); } dd.v-pos { color: var(--pos-fg); }
+
+  .settings { display: grid; gap: 28px; max-width: 760px; }
+  .settings h2 { font-size: 1.1rem; margin-bottom: 12px; }
+  .add-form { display: flex; flex-wrap: wrap; gap: 10px; }
+  .add-form input { flex: 1 1 220px; width: auto; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 240px; overflow-y: auto; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 0.8rem; background: var(--raised); border: 1px solid var(--line); border-radius: 5px; padding: 2px 4px 2px 8px; }
+  .chip button { appearance: none; background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1rem; line-height: 1; padding: 2px 5px; border-radius: 3px; }
+  .chip button:hover { color: var(--bad-fg); }
+  .field { display: grid; gap: 8px; }
+  .slider-line { display: flex; align-items: center; gap: 14px; }
+  .slider-line input[type="range"] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .slider-line output { font-family: var(--font-mono); min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .check { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .check input { width: 18px; height: 18px; accent-color: var(--accent); }
+  .count { font-size: 0.85rem; color: var(--muted); margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+
+  .toast-host { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; pointer-events: none;
+    padding: 0 max(16px, env(safe-area-inset-left, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+  .toast { background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 500; font-size: 0.9rem; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; }
+  .toast.show { opacity: 1; transform: none; }
+
+  .chat { max-width: 720px; display: flex; flex-direction: column; gap: 14px; }
+  .chat-log { display: flex; flex-direction: column; gap: 10px; height: min(40vh, 340px); overflow-y: auto; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  .msg { display: flex; flex-direction: column; gap: 4px; max-width: 84%; min-width: 0; }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.bot { align-self: flex-start; }
+  .bubble { padding: 10px 14px; border-radius: 12px; overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.55; }
+  .msg.user .bubble { background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; }
+  .msg.bot .bubble { background: var(--raised); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .flag { font-size: 0.72rem; color: var(--neg-fg); }
+  .chat-form { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chat-form input { flex: 1 1 220px; width: auto; }
+
+  .vbubble { display: flex; align-items: center; gap: 10px; }
+  .play { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; cursor: pointer; flex: none; padding: 0; }
+  .play svg { width: 18px; height: 18px; }
+  .play:hover { filter: brightness(1.08); }
+  .vlabel { font-size: 0.9rem; color: var(--muted); }
+  .vbubble.playing .vlabel { color: var(--fg); }
+  .vbubble.playing .play { animation: ring 1.4s ease-out infinite; }
+  @keyframes ring { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+  .vtext { display: none; font-size: 0.9rem; color: var(--muted); padding: 2px 4px; overflow-wrap: anywhere; white-space: pre-wrap; }
+  .show-text .vtext { display: block; }
+  .log-note { color: var(--muted); font-size: 0.9rem; text-align: center; padding: 8px; }
+  .voice-status { color: var(--muted); font-size: 0.9rem; min-height: 1.4em; }
+  @media (prefers-reduced-motion: reduce) { .vbubble.playing .play { animation: none; } }
+
+  @media (max-width: 760px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .brand h1 { font-size: 1.35rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar-fill, .toast { transition: none; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Blus NLP Engine</h1>
+      <span class="badge">Moderasi media sosial</span>
+    </div>
+    <p class="privacy">Analisis berjalan di browser kamu. Teks tidak dikirim ke server.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Menu utama">
+    <button class="tab" role="tab" id="tab-analisis" data-tab="analisis" aria-selected="true" aria-controls="panel-analisis">Dashboard Analisis</button>
+    <button class="tab" role="tab" id="tab-chat" data-tab="chat" aria-selected="false" aria-controls="panel-chat">Chatbot</button>
+    <button class="tab" role="tab" id="tab-setelan" data-tab="setelan" aria-selected="false" aria-controls="panel-setelan">Pengaturan Engine</button>
+  </div>
+
+  <section id="panel-analisis" role="tabpanel" aria-labelledby="tab-analisis">
+    <div class="grid">
+      <div class="col">
+        <div>
+          <label class="cap" for="input">Komentar yang dianalisis</label>
+          <textarea id="input" placeholder="Ketik atau tempel komentar sosmed untuk dianalisis..."></textarea>
+        </div>
+        <div class="row">
+          <button class="btn primary grow" id="btn-run" type="button">Proses</button>
+          <button class="btn grow" id="btn-clear" type="button">Hapus teks</button>
+        </div>
+        <div>
+          <span class="cap">Hasil sorotan</span>
+          <div class="out" id="out-highlight" aria-live="polite"></div>
+          <div class="legend">
+            <span><i style="background: var(--bad)"></i>Kata kasar</span>
+            <span><i style="background: var(--neg)"></i>Sentimen negatif</span>
+            <span><i style="background: var(--pos)"></i>Sentimen positif</span>
+          </div>
+        </div>
+        <div>
+          <span class="cap">Teks terfilter (sensor)</span>
+          <div class="out quiet" id="out-censor"></div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="panel">
+          <div class="gauge-head">
+            <span class="cap" style="margin: 0">Toxicity / Risk Index</span>
+            <span class="pill ok" id="verdict">Aman</span>
+          </div>
+          <div class="gauge-val" id="gauge-val">0%</div>
+          <div style="height: 14px"></div>
+          <div class="bar" role="img" id="gauge-bar" aria-label="Risk index 0 persen">
+            <div class="bar-fill" id="gauge-fill"></div>
+            <div class="bar-mark" id="gauge-mark" title="Ambang batas"></div>
+          </div>
+          <div class="bar-scale"><span>0</span><span id="gauge-th">Ambang 60</span><span>100</span></div>
+        </div>
+        <div class="panel">
+          <span class="cap">Metrik NLP</span>
+          <dl class="metrics">
+            <div><dt>Total kata</dt><dd id="m-total">0</dd></div>
+            <div><dt>Rasio kata kasar</dt><dd id="m-ratio">0%</dd></div>
+            <div><dt>Kata kasar</dt><dd class="v-bad" id="m-bad">0</dd></div>
+            <div><dt>Sentimen negatif</dt><dd class="v-neg" id="m-neg">0</dd></div>
+            <div><dt>Sentimen positif</dt><dd class="v-pos" id="m-pos">0</dd></div>
+            <div><dt>Waktu eksekusi</dt><dd id="m-time">0 ms</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
+    <div class="chat">
+      <div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-label="Percakapan dengan Blus"></div>
+
+      <form class="chat-form" id="chat-form" autocomplete="off">
+        <label class="cap" for="chat-input" style="flex-basis: 100%; margin: 0">Pesan</label>
+        <input type="text" id="chat-input" maxlength="2000" placeholder="Tulis pesan untuk Blus...">
+        <button class="btn primary" type="submit">Kirim</button>
+        <button class="btn" type="button" id="chat-reset">Mulai ulang</button>
+      </form>
+
+      <div class="row" style="align-items: center; gap: 18px">
+        <label class="check" for="show-text">
+          <input type="checkbox" id="show-text">
+          <span>Tampilkan teks balasan</span>
+        </label>
+        <span class="voice-status" id="voice-status" aria-live="polite"></span>
+      </div>
+
+      <p class="hint">Blus menjawab dengan suara memakai fitur bawaan browser. Kalau suara tidak keluar, nyalakan Tampilkan teks balasan. Balasan dibuat dari aturan lokal di browser, bukan dari Gemini.</p>
+    </div>
+  </section>
+
+  <section id="panel-setelan" role="tabpanel" aria-labelledby="tab-setelan" hidden>
+    <div class="settings">
+      <div>
+        <h2>Manajemen lexicon kata kasar</h2>
+        <form class="add-form" id="add-form" autocomplete="off">
+          <label class="cap" for="new-word" style="flex-basis: 100%; margin: 0">Tambah kata atau frasa terlarang baru</label>
+          <input type="text" id="new-word" placeholder="Contoh: dasar alay">
+          <button class="btn primary" type="submit">Tambahkan ke kamus</button>
+        </form>
+        <p class="count" id="word-count"></p>
+        <div class="chips" id="chips" aria-label="Daftar kata aktif"></div>
+        <div class="row" style="margin-top: 12px">
+          <button class="btn danger" id="btn-reset-words" type="button">Kembalikan kamus ke bawaan</button>
+        </div>
+      </div>
+
+      <div>
+        <h2>Aturan dan ambang batas moderasi</h2>
+        <div class="field">
+          <label class="cap" for="threshold" style="margin: 0">Sensitivitas risk index</label>
+          <div class="slider-line">
+            <input type="range" id="threshold" min="10" max="90" step="1" value="60">
+            <output id="threshold-out" for="threshold">60</output>
+          </div>
+          <p class="hint">Komentar dengan risk index di atas ambang ini ditandai Perlu ditinjau.</p>
+        </div>
+        <div style="height: 16px"></div>
+        <label class="check" for="auto-censor">
+          <input type="checkbox" id="auto-censor" checked>
+          <span>Sensor otomatis kata kasar dengan karakter •••</span>
+        </label>
+        <p class="hint">Kamus dan pengaturan tersimpan di browser ini saja.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast-host"><div class="toast" id="toast" role="status" aria-live="polite"></div></div>
+
+<script>
+// ==== LOGIC START
+const DEFAULT_BAD = [
+  "beban keluarga","muka tembok","cari perhatian","sampah masyarakat","sok tua","sok ganteng","sok cantik",
+  "sok pinter","sok tahu","sok asik","tukang pamer","bacot lu","dasar belegug","pansos","jamet","alay","cringe",
+  "kampungan","norak","lebay","baperan","baper","kudet","bego","sampah","bacot","bawel","noob","flop","autis",
+  "idiot","cacat","pedofil","sarap","gila","motherfucker","bullshit","asshole","bastard","kontol","memek",
+  "ngentot","brengsek","bangsat","bajingan","goblok","tolol","anjing","belegug","bedegong","goblog","siah",
+  "jancok","jancuk","dancok","matamu","celeng","mbokne","bagong","modar","kehed","kampret","lonte","jembut",
+  "panteq","pantek","fuck","fucking","shit","bitch","cunt","dick","pussy","damn","loser","clown","stfu",
+  "bodoh","dungu","bloon","oon","geblek","pekok","dongo","ngehe","sinting","edan","gendeng","sableng","bejat","biadab","keparat","sialan","bedebah","laknat","kurang ajar","tidak tahu malu","tak tahu malu","gak tahu malu","tak tahu diri","gak tahu diri","tidak punya otak","gak punya otak","ga punya otak","otak udang","otak kosong","sakit jiwa","dasar bodoh","bodoh amat","mulut comberan","mulut sampah","diem lu","diam lu","tutup mulutmu","bangke","bangkai","mampus","mampus lu","kimak","pukimak","puki","kampang","asu","kirik","taek","tai","babi","monyet","kunyuk","setan","iblis","ndasmu","cuk","cok","peler","pepek","pelacur","sundal","jablay","perek","bispak","pecun","buluk","dekil","burik","anjir","anjg","anjrit","bgst","bgsd","bangsad","gblk","kntl","bacod"
+];
+const NEG_WORDS = [
+  "jelek banget","ga jelas","gajelas","ga banget","gak banget","kecewa berat","tidak berguna","teu alus",
+  "teu hade","nguciwakeun","buruk","kecewa","jelek","gagal","payah","menyebalkan","parah","terrible","worst",
+  "ngeselin","dramatis","halu","hoax","penipu","plagiat","bohong","nyontek","rusak","murahan"
+];
+const POS_WORDS = [
+  "suka banget","terbaik emang","alus pisan","bagus","mantap","keren","hebat","puas","membantu","terbaik",
+  "alus","hade","sae","awesome","excellent","love","menginspirasi","top","salut","panutan","rekomended",
+  "rekomen","great","good"
+];
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+const STEM_PREFIXES = ["di", "me", "ke", "ber", "ter", "ng", "ny"];
+const STEM_SUFFIXES = ["ku", "mu", "nya", "kan", "an", "i"];
+
+function stem(word) {
+  let v = word.toLowerCase();
+  for (const p of STEM_PREFIXES) {
+    if (v.startsWith(p) && v.length > p.length + 2) { v = v.slice(p.length); break; }
+  }
+  for (const s of STEM_SUFFIXES) {
+    if (v.endsWith(s) && v.length > s.length + 2) { v = v.slice(0, -s.length); break; }
+  }
+  return v;
+}
+
+function tokenize(text) {
+  return [...text.matchAll(/\b[\w\-']+\b/g)].map((m, index) => ({
+    start: m.index, end: m.index + m[0].length, index, word: m[0]
+  }));
+}
+
+function collectMatches(text, tokens, lexicon, occupied) {
+  const matches = [];
+  const terms = [...new Set(lexicon.map((w) => w.toLowerCase().trim()).filter(Boolean))]
+    .sort((a, b) => b.length - a.length);
+  for (const term of terms) {
+    const re = new RegExp("(?<!\\w)" + escapeRe(term) + "(?!\\w)", "gi");
+    for (const m of text.matchAll(re)) {
+      const s = m.index, e = s + m[0].length;
+      const covered = tokens.filter((t) => t.start < e && t.end > s).map((t) => t.index);
+      if (!covered.length || covered.some((i) => occupied.has(i))) continue;
+      covered.forEach((i) => occupied.add(i));
+      matches.push({ word: m[0], index: covered[0] });
+    }
+  }
+  const lookup = new Set(terms);
+  for (const t of tokens) {
+    if (occupied.has(t.index)) continue;
+    if (lookup.has(t.word.toLowerCase()) || lookup.has(stem(t.word))) {
+      occupied.add(t.index);
+      matches.push({ word: t.word, index: t.index });
+    }
+  }
+  return matches;
+}
+
+function analyze(text, bad) {
+  const t0 = performance.now();
+  const clean = text || "";
+  const tokens = tokenize(clean);
+  const occupied = new Set();
+  const badM = collectMatches(clean, tokens, bad, occupied);
+  const negM = collectMatches(clean, tokens, NEG_WORDS, occupied);
+  const posM = collectMatches(clean, tokens, POS_WORDS, occupied);
+  const total = tokens.length;
+  let risk = 0;
+  if (total) risk = Math.min(Math.round(((badM.length * 3.5 + negM.length * 1.5) / (total + 2)) * 100), 100);
+  return { total, bad: badM, neg: negM, pos: posM, risk, ms: Math.round((performance.now() - t0) * 100) / 100 };
+}
+
+function buildRegex(words) {
+  const ws = [...new Set(words.map((w) => w.toLowerCase().trim()).filter(Boolean))].sort((a, b) => b.length - a.length);
+  if (!ws.length) return null;
+  return new RegExp("(?<!\\w)(?:" + ws.map(escapeRe).join("|") + ")(?!\\w)", "gi");
+}
+function highlight(text, bad) {
+  const cls = new Map();
+  POS_WORDS.forEach((w) => cls.set(w.toLowerCase(), "hl-pos"));
+  NEG_WORDS.forEach((w) => cls.set(w.toLowerCase(), "hl-neg"));
+  bad.forEach((w) => cls.set(w.toLowerCase().trim(), "hl-bad"));
+  const re = buildRegex([...cls.keys()]);
+  if (!re) return escapeHtml(text);
+  let out = "", last = 0;
+  for (const m of text.matchAll(re)) {
+    out += escapeHtml(text.slice(last, m.index)) + '<span class="' + cls.get(m[0].toLowerCase()) + '">' + escapeHtml(m[0]) + "</span>";
+    last = m.index + m[0].length;
+  }
+  return out + escapeHtml(text.slice(last));
+}
+function censor(text, bad) {
+  const re = buildRegex(bad);
+  if (!re) return escapeHtml(text);
+  let out = "", last = 0;
+  for (const m of text.matchAll(re)) {
+    out += escapeHtml(text.slice(last, m.index)) + "•••";
+    last = m.index + m[0].length;
+  }
+  return out + escapeHtml(text.slice(last));
+}
+
+let lastPick = "";
+const pick = (a) => {
+  const pool = a.filter((x) => x !== lastPick);
+  const src = pool.length ? pool : a;
+  const r = src[Math.floor(Math.random() * src.length)];
+  lastPick = r;
+  return r;
+};
+
+function isCrisis(message) {
+  return /\b(bunuh diri|mengakhiri hidup|ingin mati|pengen mati|mau mati|menyakiti diri|melukai diri)\b/.test(message.toLowerCase());
+}
+
+function angryReply() {
+  return pick([
+    "Kayaknya kamu lagi emosi banget, aku ngerti. Tapi kata-kata kasar biasanya malah bikin kita makin capek dan masalahnya makin panjang. Coba tarik napas dulu, minum air, baru ceritain apa yang bikin kamu kesal. Aku dengerin.",
+    "Nggak apa-apa kalau lagi kesal, perasaan itu wajar. Cuma sebaiknya dikeluarkan lewat kata-kata yang menjelaskan, bukan yang melukai, biar kamu dan orang lain nggak ikut sakit. Coba bilang aja kamu lagi kesal karena apa. Yuk, cerita pelan-pelan.",
+    "Aku paham, kadang emosi keluar duluan sebelum sempat dipikir. Saranku, kalau lagi panas, diam sebentar dulu sebelum ngomong atau ngetik. Sepuluh detik aja sering cukup untuk menenangkan. Sekarang, apa yang sebenarnya bikin kamu nggak enak hati?",
+    "Kata kasar itu biasanya cuma kulit luarnya. Di dalamnya ada perasaan yang lebih jujur, misalnya kecewa, capek, atau merasa nggak dihargai. Coba kenali yang mana, terus ceritain ke aku. Kita cari jalan keluarnya pelan-pelan."
+  ]);
+}
+
+function politeNudge() {
+  return pick([
+    "Satu saran kecil ya: kalau lagi kesal, coba ganti kata kasarnya dengan bilang apa yang kamu rasakan, biar yang dengar lebih mudah mengerti.",
+    "Aku ngerti kamu lagi emosi. Pelan-pelan aja ya, kata-kata kasar sering bikin kita sendiri nggak tenang sesudahnya.",
+    "Sedikit nasihat dari aku: tarik napas dulu sebelum bicara, biasanya kata-kata jadi lebih lembut dan masalahnya lebih cepat selesai."
+  ]);
+}
+
+const FEELINGS = [
+  ["anger", "marah|kesal|jengkel|sebal|bete|dongkol|benci|berantem|bertengkar|ribut|cekcok|salah paham|musuhan|emosi"],
+  ["hurt", "sedih|kecewa|sakit hati|terluka|dikhianati|dibohongi|ditinggal|dicuekin|diabaikan|patah hati|nangis|menangis"]
+];
+const TARGETS = [
+  ["friend", "teman|temen|sahabat|kawan|bestie"],
+  ["partner", "pacar|gebetan|suami|istri|pasangan|mantan"],
+  ["family", "ortu|orang tua|ayah|ibu|bapak|mama|papa|mamah|papah|kakak|adik|keluarga|saudara"],
+  ["boss", "bos|atasan|guru|dosen|manajer|senior"]
+];
+const ADVICE = {
+  friend: {
+    anger: [
+      "Pertama, jangan langsung dilabrak atau disindir di grup, karena itu biasanya bikin masalahnya makin besar. Tunggu emosimu turun dulu, baru ajak ngobrol berdua dengan tenang. Pakai kalimat seperti 'aku merasa nggak enak waktu kamu begitu', bukan 'kamu selalu begitu'. Dengarkan juga sisi dia, siapa tahu ada salah paham. Kalau dia sudah sering mengulang dan nggak mau berubah, wajar kalau kamu menjaga jarak demi kesehatan hatimu.",
+      "Coba tanya ke diri sendiri dulu: ini masalah kecil yang bisa dimaafkan, atau sudah berulang dan melewati batasmu? Kalau kecil, kadang cukup dibicarakan santai sambil bercanda. Kalau sudah berulang, bicarakan serius dan sebutkan kejadiannya satu per satu dengan tenang. Hindari menjelek-jelekkan dia ke teman lain, nanti malah jadi gosip dan makin panas."
+    ],
+    hurt: [
+      "Dikecewakan teman rasanya sakit karena kita sudah percaya. Kasih dirimu waktu untuk sedih, tapi jangan langsung memutus pertemanan saat emosi. Kalau sudah lebih tenang, sampaikan apa yang kamu rasakan dengan jujur. Teman yang baik akan mau mendengar dan memperbaiki. Kalau dia nggak peduli, itu petunjuk supaya kamu menaruh energi pada orang yang menghargaimu.",
+      "Wajar kamu terluka. Coba tulis dulu apa yang sebenarnya menyakitkan: perbuatannya, atau rasa nggak dihargai? Dari situ kamu lebih mudah menjelaskannya ke dia. Beri satu kesempatan untuk menjelaskan, lalu lihat tindakannya, karena perubahan lebih penting daripada kata maaf."
+    ]
+  },
+  partner: {
+    anger: [
+      "Jangan bicara saat emosi lagi di puncak, karena kata-kata yang keluar sering disesali. Tenangkan diri dulu, lalu bilang dengan jelas apa yang mengganggu dan apa yang kamu harapkan berubah. Fokus ke satu masalah saja, jangan mengungkit semua kesalahan lama. Kalau pola yang sama terus terulang, itu perlu dibicarakan serius, bukan dipendam."
+    ],
+    hurt: [
+      "Disakiti orang yang kita sayang itu berat. Jangan buru-buru memutuskan bertahan atau pergi saat hati lagi berantakan. Tulis dulu apa yang membuatmu terluka dan apa yang kamu butuhkan. Setelah tenang, sampaikan ke dia dan lihat apakah dia mau berusaha. Tindakannya setelah itu lebih penting daripada kata maafnya. Kalau kamu merasa terus-terusan dilukai, kamu berhak mempertimbangkan untuk pergi."
+    ]
+  },
+  family: {
+    anger: [
+      "Dengan keluarga, rasa kesal sering muncul karena kita ingin dimengerti. Tahan dulu supaya nggak ada kata yang nanti disesali. Cari waktu yang tenang, sampaikan perasaanmu dengan sopan, dan jelaskan apa yang kamu butuhkan. Kadang orang tua atau saudara nggak sadar sudah melukai. Kalau sulit bicara langsung, tulis surat atau minta bantuan anggota keluarga yang kamu percaya."
+    ],
+    hurt: [
+      "Dilukai keluarga itu sakitnya dalam, karena kita berharap mereka paling paham. Beri dirimu waktu untuk menenangkan hati. Coba lihat dari sisi mereka juga, mungkin mereka lagi capek atau nggak tahu caranya mengungkapkan sayang. Setelah itu sampaikan perasaanmu dengan tenang dan sopan. Kalau berat dibawa sendiri, cerita ke orang dewasa yang kamu percaya atau konselor."
+    ]
+  },
+  boss: {
+    anger: [
+      "Jangan dibalas saat emosi, apalagi di depan orang banyak. Catat dulu kejadiannya dengan fakta, tanpa bumbu perasaan. Minta waktu bicara empat mata, sampaikan dengan sopan dan tawarkan solusi. Kalau masalahnya serius atau terus berulang, laporkan ke pihak yang tepat seperti HRD, wali kelas, atau pimpinan di atasnya."
+    ],
+    hurt: [
+      "Dibuat kecewa atasan atau guru itu bikin patah semangat. Ingat, nilaimu nggak ditentukan oleh satu orang. Catat apa yang terjadi, lalu cari waktu bicara baik-baik untuk meminta penjelasan atau masukan yang jelas. Kalau tidak membaik, cari mentor atau orang lain yang bisa menilai kerjamu lebih adil."
+    ]
+  }
+};
+
+function findWord(m, pattern) {
+  const r = m.match(new RegExp("\\b(" + pattern + ")\\b"));
+  return r ? r[1] : null;
+}
+function lead(m, pattern) {
+  const w = findWord(m, pattern);
+  return w ? "Aku denger kamu lagi " + w + ". " : "";
+}
+function contextAdvice(m) {
+  let feeling = null, fw = null, target = null, tw = null;
+  for (const [k, p] of FEELINGS) { const w = findWord(m, p); if (w) { feeling = k; fw = w; break; } }
+  for (const [k, p] of TARGETS) { const w = findWord(m, p); if (w) { target = k; tw = w; break; } }
+  if (!feeling || !target) return null;
+  return "Aku denger kamu lagi " + fw + " sama " + tw + ". " + pick(ADVICE[target][feeling]);
+}
+
+function chatReply(message) {
+  const m = message.toLowerCase();
+  const t = (s) => new RegExp("\\b(" + s + ")\\b").test(m);
+
+  if (isCrisis(message)) {
+    return "Aku ikut khawatir mendengarnya, dan aku senang kamu mau bilang. Kamu nggak harus menghadapinya sendirian. " +
+      "Tolong hubungi orang yang kamu percaya sekarang juga. Kalau kamu merasa dalam bahaya, hubungi layanan darurat setempat " +
+      "atau datang ke IGD terdekat. Psikolog atau psikiater juga bisa membantu. Aku di sini kalau kamu mau cerita.";
+  }
+  if (t("gedek|bosen|bosan|membosankan|gini mulu|gitu mulu|itu-itu|sama terus|jawabannya gitu|ngomongnya gitu|ngomong gitu|template")) {
+    return pick([
+      "Maaf ya, tadi jawabanku kurang nyambung. Coba ceritain pelan-pelan apa yang lagi kamu rasain, nanti aku kasih saran yang lebih pas.",
+      "Iya, kamu benar, tadi kurang enak. Ceritain aja satu hal yang lagi paling bikin kepikiran, aku coba jawab lebih nyambung."
+    ]);
+  }
+  if (t("dihina|diejek|dibully|bully|dikatain|dijelekin|dihujat|dirundung|dimaki|dicaci")) {
+    return pick([
+      "Itu nggak enak banget, dan kamu nggak salah. Jangan dibalas pakai emosi. Simpan buktinya seperti tangkapan layar, blokir atau laporkan akunnya, dan ceritain ke orang yang kamu percaya. Kalau sudah mengganggu keselamatanmu, laporkan ke pihak berwenang atau sekolah.",
+      "Dihina itu bikin capek hati. Ingat, omongan orang yang suka merendahkan lebih banyak bicara soal mereka daripada soal kamu. Kamu boleh nggak menanggapi. Kalau terus berlanjut, simpan buktinya dan minta bantuan orang dewasa atau pihak yang berwenang."
+    ]);
+  }
+  const ctx = contextAdvice(m);
+  if (ctx) return ctx;
+  if (t("sedih|kecewa|patah hati|sakit hati|putus|gagal|ditolak|menangis|nangis|berduka")) {
+    return lead(m, "sedih|kecewa|patah hati|sakit hati|menangis|nangis|berduka") + pick([
+      "Wajar banget kalau kamu sedih, itu tandanya kamu peduli. Kasih diri kamu waktu dan jangan dipaksa langsung baik-baik saja. Kalau sudah agak tenang, ceritain ke orang yang kamu percaya, biasanya bebannya jadi lebih ringan.",
+      "Rasanya pasti nggak enak. Menangis itu boleh kok. Untuk sementara, makan yang cukup, tidur yang cukup, dan jangan ambil keputusan besar waktu hati lagi berantakan.",
+      "Aku ikut sedih dengarnya. Pelan-pelan aja. Satu hal kecil yang bisa kamu lakukan hari ini: mandi, jalan sebentar, atau telepon orang yang bikin kamu nyaman. Kalau sedihnya berlarut-larut sampai berminggu-minggu, ngobrol dengan psikolog bukan hal yang memalukan."
+    ]);
+  }
+  if (t("stres|stress|tertekan|cemas|khawatir|takut|panik|gugup|overthinking|kepikiran|gelisah")) {
+    return lead(m, "stres|stress|tertekan|cemas|khawatir|takut|panik|gugup|overthinking|kepikiran|gelisah") + pick([
+      "Coba tarik napas pelan-pelan: hirup empat hitungan, tahan sebentar, lalu buang enam hitungan. Ulangi beberapa kali. Setelah itu tulis apa yang kamu khawatirkan, terus pisahkan mana yang bisa kamu kendalikan dan mana yang enggak. Fokus dulu ke yang bisa kamu kendalikan.",
+      "Pikiran yang penuh itu capek, ya. Jangan hadapi semuanya sekaligus. Pilih satu hal paling mendesak, kerjakan sedikit saja, biasanya rasa cemasnya ikut turun.",
+      "Kalau lagi overthinking, biasanya yang dibayangkan lebih seram daripada kenyataannya. Tanya ke diri sendiri: ini beneran terjadi, atau baru kemungkinan? Kalau sering banget begini, ngobrol dengan profesional bisa sangat membantu."
+    ]);
+  }
+  if (t("capek|cape|lelah|kelelahan|burnout|begadang|insomnia|susah tidur")) {
+    return lead(m, "capek|cape|lelah|kelelahan|burnout") + pick([
+      "Kayaknya badan dan pikiranmu minta istirahat. Istirahat itu bukan malas. Coba tidur lebih awal malam ini, jauhkan HP satu jam sebelum tidur, dan minum air yang cukup.",
+      "Kalau capeknya sudah berhari-hari, jangan dipaksa terus. Kurangi satu hal yang nggak terlalu penting dulu, dan bilang ke orang sekitar kalau kamu butuh jeda."
+    ]);
+  }
+  if (t("marah|kesal|jengkel|sebal|emosi")) {
+    return lead(m, "marah|kesal|jengkel|sebal|emosi") + pick([
+      "Kalau lagi marah, jangan langsung membalas atau ambil keputusan. Tarik napas, minum air, atau jalan sebentar dulu. Setelah tenang, baru ngomong baik-baik. Biasanya hasilnya jauh lebih baik.",
+      "Wajar kok kesal. Yang penting cara menyalurkannya. Coba tulis dulu semua yang bikin kesal, tapi jangan dikirim ke siapa-siapa. Besok baca lagi, biasanya kamu jadi tahu apa yang perlu dilakukan."
+    ]);
+  }
+  if (t("kesepian|sendirian|curhat")) {
+    return lead(m, "kesepian|sendirian") + pick([
+      "Kesepian itu rasanya berat, tapi bukan berarti kamu nggak berharga. Coba kirim pesan ke satu orang yang dulu dekat, cukup tanya kabar saja. Hal kecil begitu sering membuka obrolan.",
+      "Kamu nggak harus menghadapi semuanya sendirian. Cari kegiatan yang rutin ketemu orang, misalnya olahraga, komunitas, atau kerja kelompok. Pelan-pelan aja, nggak usah buru-buru."
+    ]);
+  }
+  if (t("cinta|pacar|gebetan|hubungan|teman|sahabat|keluarga|ortu|orang tua")) {
+    return pick([
+      "Dalam hubungan apa pun, komunikasi jujur itu kunci. Coba bilang apa yang kamu rasakan pakai kalimat 'aku merasa', bukan menyalahkan. Pilih waktu yang tenang, jangan saat lagi emosi.",
+      "Kalau ada yang terus bikin kamu sakit hati, kamu berhak menetapkan batas. Bicarakan baik-baik. Kalau sudah dicoba berkali-kali dan nggak berubah, itu juga informasi penting buat kamu."
+    ]);
+  }
+  if (t("sekolah|kuliah|tugas|ujian|skripsi|kerja|kantor|bos|guru|dosen|deadline")) {
+    return pick([
+      "Kalau tugasnya numpuk, tulis semuanya, urutkan dari tenggat yang paling dekat, lalu kerjakan satu per satu. Mulai dari dua puluh lima menit dulu, istirahat lima menit. Yang berat biasanya mulainya aja.",
+      "Kalau ada masalah sama atasan atau guru, coba bicarakan langsung dengan sopan dan bawa solusi, bukan cuma keluhan. Catat juga fakta-faktanya supaya jelas."
+    ]);
+  }
+  if (t("uang|duit|utang|hutang|gaji|boros|nabung|bokek|keuangan")) {
+    return "Coba catat dulu semua pemasukan dan pengeluaran selama sebulan, dari situ kelihatan bocornya di mana. Sisihkan tabungan di awal bulan, bukan sisa di akhir bulan. Kalau punya utang, bayar dulu yang bunganya paling besar. Untuk keputusan besar soal uang, ada baiknya tanya orang yang paham keuangan.";
+  }
+  if (t("malas|males|mager|prokrastinasi|menunda|nggak semangat|gak semangat|tidak semangat")) {
+    return "Kalau lagi males, jangan nunggu semangat datang dulu. Mulai dari langkah paling kecil, misalnya lima menit saja. Biasanya begitu jalan, semangatnya ikut datang.";
+  }
+  if (t("minder|insecure|percaya diri|merasa gagal|tidak berguna|nggak berguna|gak berguna")) {
+    return "Jangan bandingkan hidupmu sama yang kamu lihat di media sosial, itu cuma bagian terbaiknya. Coba tulis tiga hal yang sudah kamu capai, sekecil apa pun. Kamu lebih berharga dari yang kamu kira.";
+  }
+  if (t("sakit|demam|pusing|flu|batuk|meriang")) {
+    return "Cepat sembuh ya. Istirahat yang cukup, minum air putih, dan makan teratur. Kalau demamnya lebih dari tiga hari, sesak napas, atau makin parah, sebaiknya periksa ke dokter. Aku bukan tenaga medis, jadi jangan jadikan ini pengganti dokter.";
+  }
+  if (t("bingung|galau|keputusan|memilih|pilih mana")) {
+    return "Kalau bingung memilih, tulis plus dan minus tiap pilihan, lalu tanya ke diri sendiri: mana yang bakal paling aku sesali kalau nggak dicoba? Kalau masih ragu, minta pendapat satu orang yang kamu percaya, tapi keputusan akhirnya tetap di kamu.";
+  }
+  if (t("senang|bahagia|gembira|berhasil|lulus|menang|lega")) {
+    return pick([
+      "Wah, ikut senang dengarnya! Nikmati dulu momennya, dan jangan lupa bilang terima kasih ke orang yang membantu. Ceritain dong, apa yang paling bikin kamu bangga?",
+      "Asyik, kabar baik! Rayakan sebentar, kamu pantas. Habis itu, catat apa yang bikin kamu berhasil supaya bisa diulang."
+    ]);
+  }
+  if (t("jokes|joke|lucu|lelucon|bercanda|becanda")) {
+    return pick([
+      "Kenapa komputer suka kedinginan? Karena jendelanya kebanyakan terbuka.",
+      "Kenapa bot rajin mendengarkan? Karena kalau menyela, nanti dianggap mengalami gangguan koneksi sosial."
+    ]);
+  }
+  if (t("kemarin|kemaren|semalam|semalem|tadi malam|malam tadi|mlm") && t("kemana|ke mana|di mana|ngapain|lagi apa|kmn")) {
+    return "Aku nggak ke mana-mana. Aku bot, jadi semalam tetap di sini menunggu kamu ngajak ngobrol. Kamu sendiri semalam ngapain?";
+  }
+  if (t("lagi apa|ngapain|sedang apa")) {
+    return pick([
+      "Lagi ngobrol sama kamu, dong. Kamu sendiri lagi apa?",
+      "Lagi standby di sini nemenin kamu. Kamu lagi sibuk apa?"
+    ]);
+  }
+  if (t("siapa|namamu|nama kamu|kamu siapa")) {
+    return "Aku Blus, teman ngobrol virtualmu. Aku memang bot, tapi aku siap dengerin dan kasih saran sebisaku.";
+  }
+  if (t("apa kabar|gimana kabar|kabar kamu|kamu sehat")) {
+    return pick([
+      "Aku baik, terima kasih sudah nanya. Kalau kamu, gimana kabarnya hari ini?",
+      "Baik! Siap dengerin. Hari ini kamu lagi merasa gimana?"
+    ]);
+  }
+  if (t("halo|hai|hello|hey|pagi|siang|sore|malam")) {
+    return pick([
+      "Hai! Senang kamu mampir. Gimana harimu sejauh ini?",
+      "Halo! Aku siap dengerin. Ada cerita apa hari ini?",
+      "Hai, apa kabar? Ceritain aja, aku lagi menyimak."
+    ]);
+  }
+  if (t("terima kasih|makasih|thanks|tengkyu")) {
+    return pick([
+      "Sama-sama! Senang bisa bantu. Kalau butuh teman ngobrol lagi, aku di sini.",
+      "Dengan senang hati. Jaga diri baik-baik ya."
+    ]);
+  }
+  if (t("suara|bicara|berbicara|voice|mikrofon|microphone")) {
+    return "Aku menjawab dengan suara. Ketik pesanmu di kolom bawah lalu kirim, nanti balasanku dibacakan. Kalau suaranya nggak keluar, nyalakan Tampilkan teks balasan.";
+  }
+  if (t("analisis|analisa|sentimen|moderasi|kata kasar|risiko|risk")) {
+    return "Fitur analisis mengecek kata kasar dan sentimen, lalu menampilkan indeks risiko. Coba tab Dashboard Analisis untuk mengujinya.";
+  }
+  if (t("cara pakai|menggunakan|gunakan|fitur|aplikasi|app")) {
+    return "Di Dashboard Analisis, masukkan teks lalu tekan Proses. Di tab Chatbot, ketik pesan lalu aku jawab pakai suara.";
+  }
+  if (m.includes("?") || t("apa|siapa|kapan|dimana|di mana|kemana|ke mana|kenapa|mengapa|bagaimana|gimana|berapa|kah")) {
+    return pick([
+      "Pertanyaan bagus. Aku belum punya cukup konteks buat jawab dengan tepat. Bisa ceritain latar belakangnya sedikit?",
+      "Aku pengen jawab dengan benar, bukan asal tebak. Coba jelasin sedikit lagi, ini soal perasaan, hubungan, sekolah, kerja, atau uang?"
+    ]);
+  }
+  return pick([
+    "Aku dengerin kok. Kalau mau, ceritain lebih lengkap apa yang terjadi dan apa yang kamu rasain, nanti aku coba kasih saran yang pas.",
+    "Hmm, aku belum nangkep sepenuhnya. Coba jelasin sedikit lagi: ini soal perasaan, hubungan, sekolah atau kerja, atau uang? Biar sarannya nggak asal.",
+    "Oke. Kalau lagi ada yang mengganjal, coba sebut satu hal yang paling mengganggu saat ini. Dari situ kita cari langkah kecilnya.",
+    "Aku di sini. Ceritanya mau dilanjut, atau kamu butuh saran dulu? Bilang aja."
+  ]);
+}
+// ==== LOGIC END
+
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const KEY = "blus-ai-settings-v1";
+  const LEX_VERSION = 2;
+  let words = DEFAULT_BAD.slice();
+  let threshold = 60;
+  let autoCensor = true;
+  let hasResult = false;
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved) {
+      if (Array.isArray(saved.words) && saved.words.every((w) => typeof w === "string")) {
+        words = saved.words;
+        if (saved.lexV !== LEX_VERSION) {
+          const have = new Set(words);
+          words = DEFAULT_BAD.filter((w) => !have.has(w)).concat(words);
+        }
+      }
+      if (typeof saved.threshold === "number") threshold = Math.min(90, Math.max(10, saved.threshold));
+      if (typeof saved.autoCensor === "boolean") autoCensor = saved.autoCensor;
+    }
+  } catch (e) {}
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify({ words, threshold, autoCensor, lexV: LEX_VERSION })); } catch (e) {}
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  function selectTab(name) {
+    document.querySelectorAll("[role=tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+    ["analisis", "chat", "setelan"].forEach((n) => { $("panel-" + n).hidden = n !== name; });
+    if (name !== "chat") stopVoice();
+  }
+  document.querySelectorAll("[role=tab]").forEach((b) => b.addEventListener("click", () => selectTab(b.dataset.tab)));
+
+  function renderGauge(score) {
+    const color = score >= 75 ? "var(--bad)" : score >= 50 ? "var(--neg)" : "var(--pos)";
+    $("gauge-val").textContent = score + "%";
+    $("gauge-fill").style.width = score + "%";
+    $("gauge-fill").style.background = color;
+    $("gauge-bar").setAttribute("aria-label", "Risk index " + score + " persen");
+    $("gauge-mark").style.left = "calc(" + threshold + "% - 1px)";
+    $("gauge-th").textContent = "Ambang " + threshold;
+    const v = $("verdict");
+    if (hasResult && score >= threshold) { v.className = "pill block"; v.textContent = "Perlu ditinjau"; }
+    else if (hasResult && score >= Math.round(threshold * 0.6)) { v.className = "pill watch"; v.textContent = "Waspada"; }
+    else { v.className = "pill ok"; v.textContent = "Aman"; }
+  }
+
+  function renderMetrics(r) {
+    $("m-total").textContent = r ? r.total : 0;
+    $("m-ratio").textContent = r && r.total ? ((r.bad.length / r.total) * 100).toFixed(1) + "%" : "0%";
+    $("m-bad").textContent = r ? r.bad.length : 0;
+    $("m-neg").textContent = r ? r.neg.length : 0;
+    $("m-pos").textContent = r ? r.pos.length : 0;
+    $("m-time").textContent = (r ? r.ms : 0) + " ms";
+  }
+
+  function renderCensor() {
+    const text = $("input").value;
+    const box = $("out-censor");
+    if (!text.trim()) { box.innerHTML = '<span class="empty">Teks yang sudah disensor akan muncul di sini.</span>'; return; }
+    box.innerHTML = autoCensor ? censor(text, words) : escapeHtml(text);
+  }
+
+  function run() {
+    const text = $("input").value;
+    if (!text.trim()) {
+      hasResult = false;
+      $("out-highlight").innerHTML = '<span class="empty">Hasil analisis akan muncul di sini...</span>';
+      renderMetrics(null);
+      renderGauge(0);
+      renderCensor();
+      return;
+    }
+    const r = analyze(text, words);
+    hasResult = true;
+    $("out-highlight").innerHTML = highlight(text, words);
+    renderMetrics(r);
+    renderGauge(r.risk);
+    renderCensor();
+  }
+
+  function renderWords() {
+    $("word-count").textContent = "Daftar kata aktif: " + words.length + " item";
+    $("chips").innerHTML = words.map((w, i) =>
+      '<span class="chip">' + escapeHtml(w) + '<button type="button" data-i="' + i + '" aria-label="Hapus ' + escapeHtml(w) + '">×</button></span>'
+    ).join("");
+  }
+
+  $("btn-run").addEventListener("click", run);
+  $("btn-clear").addEventListener("click", () => { $("input").value = ""; run(); $("input").focus(); });
+  $("input").addEventListener("input", renderCensor);
+
+  $("add-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const w = $("new-word").value.trim().toLowerCase().replace(/\s+/g, " ");
+    if (!w) { toast("Isi kata atau frasa dulu."); return; }
+    if (words.includes(w)) { toast("Kata atau frasa itu sudah ada di kamus."); return; }
+    words.unshift(w);
+    $("new-word").value = "";
+    persist(); renderWords(); if (hasResult) run(); else renderCensor();
+    toast('"' + w + '" ditambahkan ke kamus.');
+  });
+
+  $("chips").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-i]");
+    if (!b) return;
+    const removed = words.splice(Number(b.dataset.i), 1)[0];
+    persist(); renderWords(); if (hasResult) run(); else renderCensor();
+    toast('"' + removed + '" dihapus dari kamus.');
+  });
+
+  let resetArmed = false, resetTimer;
+  $("btn-reset-words").addEventListener("click", (e) => {
+    const btn = e.currentTarget;
+    if (!resetArmed) {
+      resetArmed = true;
+      btn.textContent = "Yakin? Klik sekali lagi";
+      resetTimer = setTimeout(() => { resetArmed = false; btn.textContent = "Kembalikan kamus ke bawaan"; }, 3500);
+      return;
+    }
+    clearTimeout(resetTimer);
+    resetArmed = false;
+    btn.textContent = "Kembalikan kamus ke bawaan";
+    words = DEFAULT_BAD.slice();
+    persist(); renderWords(); if (hasResult) run(); else renderCensor();
+    toast("Kamus dikembalikan ke bawaan.");
+  });
+
+  $("threshold").value = threshold;
+  $("threshold-out").textContent = threshold;
+  $("threshold").addEventListener("input", (e) => {
+    threshold = Number(e.target.value);
+    $("threshold-out").textContent = threshold;
+    persist();
+    renderGauge(hasResult ? analyze($("input").value, words).risk : 0);
+  });
+
+  $("auto-censor").checked = autoCensor;
+  $("auto-censor").addEventListener("change", (e) => {
+    autoCensor = e.target.checked;
+    persist(); renderCensor();
+  });
+
+  const chatLog = $("chat-log");
+  const synth = "speechSynthesis" in window ? window.speechSynthesis : null;
+  const SPEAKER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>';
+  let replyTimer = 0, speakId = 0, speakingBubble = null;
+
+  function setStatus(msg) { $("voice-status").textContent = msg; }
+
+  function clearPlaying() {
+    if (speakingBubble) {
+      speakingBubble.classList.remove("playing");
+      speakingBubble.querySelector(".vlabel").textContent = "Balasan suara";
+      speakingBubble = null;
+    }
+    setStatus("");
+  }
+  function stopSpeaking() {
+    speakId++;
+    try { if (synth) synth.cancel(); } catch (e) {}
+    clearPlaying();
+  }
+  function stopVoice() {
+    clearTimeout(replyTimer);
+    stopSpeaking();
+  }
+
+  function pickVoice() {
+    if (!synth) return null;
+    return synth.getVoices().find((v) => v.lang.toLowerCase().replace("_", "-").startsWith("id")) || null;
+  }
+  function speak(text, bubble) {
+    if (!synth) return;
+    const id = ++speakId;
+    try {
+      synth.cancel();
+      clearPlaying();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "id-ID";
+      u.rate = 1;
+      const v = pickVoice();
+      if (v) u.voice = v;
+      u.onstart = () => {
+        if (id !== speakId) return;
+        speakingBubble = bubble;
+        bubble.classList.add("playing");
+        bubble.querySelector(".vlabel").textContent = "Sedang berbicara...";
+        setStatus("Blus lagi bicara...");
+      };
+      u.onend = () => { if (id === speakId) clearPlaying(); };
+      u.onerror = () => { if (id === speakId) clearPlaying(); };
+      synth.speak(u);
+    } catch (e) {}
+  }
+
+  function addUserMsg(text, flagged) {
+    const wrap = document.createElement("div");
+    wrap.className = "msg user";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = autoCensor ? censor(text, words) : escapeHtml(text);
+    wrap.appendChild(bubble);
+    if (flagged) {
+      const tag = document.createElement("span");
+      tag.className = "flag";
+      tag.textContent = "Kata kasar disensor";
+      wrap.appendChild(tag);
+    }
+    chatLog.appendChild(wrap);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function addBotVoice(text) {
+    const wrap = document.createElement("div");
+    wrap.className = "msg bot";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble vbubble";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "play";
+    btn.setAttribute("aria-label", "Putar atau hentikan balasan suara");
+    btn.innerHTML = SPEAKER_SVG;
+    const label = document.createElement("span");
+    label.className = "vlabel";
+    label.textContent = "Balasan suara";
+    bubble.append(btn, label);
+    const tx = document.createElement("div");
+    tx.className = "vtext";
+    tx.textContent = text;
+    wrap.append(bubble, tx);
+    btn.addEventListener("click", () => {
+      if (speakingBubble === bubble) stopSpeaking();
+      else speak(text, bubble);
+    });
+    chatLog.appendChild(wrap);
+    chatLog.scrollTop = chatLog.scrollHeight;
+    return bubble;
+  }
+
+  function handleUserMessage(raw) {
+    const text = raw.trim().slice(0, 2000);
+    if (!text) return;
+    const occ = new Set();
+    const tokens = tokenize(text);
+    const flagged = collectMatches(text, tokens, words, occ).length > 0;
+    addUserMsg(text, flagged);
+    setStatus("Blus lagi mikir...");
+    clearTimeout(replyTimer);
+    replyTimer = setTimeout(() => {
+      let reply;
+      if (isCrisis(text)) reply = chatReply(text);
+      else if (flagged && tokens.length - occ.size <= 1) reply = angryReply();
+      else reply = (flagged ? politeNudge() + " " : "") + chatReply(text);
+      setStatus("");
+      const bubble = addBotVoice(reply);
+      speak(reply, bubble);
+    }, 450 + Math.random() * 350);
+  }
+
+  function chatStart() {
+    stopVoice();
+    chatLog.innerHTML = "";
+    const note = document.createElement("div");
+    note.className = "log-note";
+    note.textContent = "Ketik pesan di bawah, lalu kirim. Blus akan menjawab dengan suara.";
+    chatLog.appendChild(note);
+  }
+
+  $("chat-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = $("chat-input");
+    const v = input.value;
+    input.value = "";
+    handleUserMessage(v);
+  });
+  $("chat-reset").addEventListener("click", () => { chatStart(); $("chat-input").focus(); });
+  $("show-text").addEventListener("change", (e) => { chatLog.classList.toggle("show-text", e.target.checked); });
+
+  if (!synth) {
+    $("show-text").checked = true;
+    $("show-text").disabled = true;
+    chatLog.classList.add("show-text");
+    setStatus("Browser ini belum mendukung suara, jadi balasan ditampilkan sebagai teks.");
+  }
+
+  renderWords();
+  run();
+  chatStart();
+})();
+</script>
